@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#10243a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Qazi Documentation - Daily Accounts</title>
+<style>
+:root{--navy:#10243a;--green:#13845b;--red:#c64b4b;--bg:#f3f6f8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:#182532}
+header{background:linear-gradient(120deg,#10243a,#1b4b55);color:white;text-align:center;padding:24px 14px}
+header h1{font-size:clamp(20px,4vw,29px);margin:0 0 7px}header p{margin:0;color:#e5d7ad}
+.wrap{max-width:1000px;margin:20px auto;padding:0 13px}
+.card,.stat{background:white;border-radius:13px;padding:16px;box-shadow:0 3px 14px #18304412}
+.datebar,.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+input{font:inherit;padding:11px;border:1px solid #ccd5dc;border-radius:8px;min-width:0}
+.datebar input{flex:1;min-width:145px}
+button{font:inherit;border:0;border-radius:8px;padding:11px 13px;cursor:pointer;font-weight:bold}
+.secondary{background:#e8eef2;color:#20384a}.sale h2{color:var(--green)}.expense h2{color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:13px}
+label{display:block;font-size:13px;font-weight:bold;margin:10px 0 6px}
+.entry{width:100%;padding:11px;border:1px solid #ccd5dc;border-radius:8px}
+.addsale,.addexpense{width:100%;margin-top:12px;color:white}.addsale{background:var(--green)}.addexpense{background:var(--red)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:11px;margin:14px 0}
+.stat span{display:block;color:#63717c;font-size:13px;margin-bottom:7px}.stat strong{font-size:21px;overflow-wrap:anywhere}
+.green{color:var(--green)}.red{color:var(--red)}.gold{color:#9a741d}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #e8edf0}th{font-size:12px;color:#62717b}
+.del{background:#fff0f0;color:#b33;padding:7px 9px}.history{margin-top:14px}.history button{margin:4px 5px 4px 0;background:#eef3f6;color:#20384a}
+.history button.active{background:#dceee6;color:#116a49}.muted{font-size:12px;color:#687782;line-height:1.5}.empty{text-align:center;color:#77838b;padding:16px}
+@media(max-width:480px){th,td{font-size:12px;padding:8px 4px}.stat strong{font-size:18px}}
+@media print{body{background:white}.no-print,header{display:none!important}.card,.stat{box-shadow:none;border:1px solid #ddd}}
+</style>
+</head>
+<body>
+<header><h1>Qazi Documentation and Digital Service</h1><p>Daily Sale & Expenses Register</p></header>
+<main class="wrap">
+  <section class="card no-print">
+    <div class="datebar">
+      <b>Select Date:</b><input id="recordDate" type="date">
+      <button class="secondary" id="todayBtn">Today</button>
+      <button class="secondary" id="yesterdayBtn">Yesterday</button>
+      <button class="secondary" id="dayBeforeBtn">Day Before</button>
+    </div>
+    <div class="muted">Purani date select karke us din ki sale aur expenses dekh sakte hain.</div>
+  </section>
+  <section class="grid" style="margin-top:13px">
+    <div class="card sale">
+      <h2>Daily Sale</h2>
+      <label for="saleDesc">Sale details</label><input class="entry" id="saleDesc" placeholder="e.g. Photocopy, form, certificate">
+      <label for="saleAmount">Amount (Rs.)</label><input class="entry" id="saleAmount" type="number" min="0" step="1" placeholder="Enter sale amount">
+      <button class="addsale no-print" id="addSale">+ Add Sale</button>
+    </div>
+    <div class="card expense">
+      <h2>Expenses</h2>
+      <label for="expenseDesc">Expense details</label><input class="entry" id="expenseDesc" placeholder="e.g. Tea, paper, electricity">
+      <label for="expenseAmount">Amount (Rs.)</label><input class="entry" id="expenseAmount" type="number" min="0" step="1" placeholder="Enter expense amount">
+      <button class="addexpense no-print" id="addExpense">+ Add Expense</button>
+    </div>
+  </section>
+  <section class="summary">
+    <div class="stat"><span>Total Sale</span><strong class="green" id="totalSale">Rs. 0</strong></div>
+    <div class="stat"><span>Total Expenses</span><strong class="red" id="totalExpense">Rs. 0</strong></div>
+    <div class="stat"><span>Net Amount / Bachat</span><strong class="gold" id="netTotal">Rs. 0</strong></div>
+  </section>
+  <section class="card">
+    <h2 id="reportHeading">Daily Entries</h2>
+    <div class="toolbar no-print">
+      <button class="secondary" id="downloadImage">Download Report as Photo (PNG)</button>
+      <button class="secondary" id="exportCsv">Download Excel-compatible CSV</button>
+      <button class="secondary" id="printReport">Print</button>
+    </div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Type</th><th>Details</th><th>Amount</th><th class="no-print">Action</th></tr></thead><tbody id="entries"></tbody></table></div>
+    <div id="empty" class="empty">No entries for this date yet.</div>
+    <p class="muted">Records are saved in this browser on this device. Download a backup regularly. Clearing browser data may erase saved records.</p>
+  </section>
+  <section class="card history no-print">
+    <h2>Previous Days — Daily History</h2>
+    <div class="muted">Jis din entry ki hogi, woh yahan nazar aayega. Date par tap karke us din ka hisaab kholen.</div>
+    <div id="historyList" style="margin-top:10px"></div>
+  </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const today=new Date(), localDate=new Date(today.getTime()-today.getTimezoneOffset()*60000).toISOString().slice(0,10);
+$('recordDate').value=localDate;
+const KEY='qazi_daily_accounts_v2';
+let records={};try{records=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){records={}}
+function save(){localStorage.setItem(KEY,JSON.stringify(records))}
+function dayRows(d=$('recordDate').value){return records[d]||[]}
+function totals(rows){return rows.reduce((a,x)=>{a[x.type]+=Number(x.amount);return a},{sale:0,expense:0})}
+function money(n){return 'Rs. '+Number(n).toLocaleString('en-PK')}
+function add(type){
+ const desc=$(type+'Desc').value.trim(),amount=Number($(type+'Amount').value);
+ if(!desc){alert('Please enter details.');return}
+ if(!Number.isFinite(amount)||amount<=0){alert('Please enter a valid amount.');return}
+ const d=$('recordDate').value;if(!records[d])records[d]=[];
+ records[d].push({id:Date.now()+Math.random(),type,desc,amount});
+ save();$(type+'Desc').value='';$(type+'Amount').value='';render();
+}
+function removeEntry(id){const d=$('recordDate').value;records[d]=(records[d]||[]).filter(x=>x.id!==id);save();render()}
+function render(){
+ const d=$('recordDate').value,rows=dayRows(d),body=$('entries');body.innerHTML='';
+ rows.forEach(x=>{
+  const tr=document.createElement('tr');
+  [x.type==='sale'?'Sale':'Expense',x.desc,money(x.amount)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});
+  const td=document.createElement('td');td.className='no-print';const b=document.createElement('button');b.className='del';b.textContent='Delete';b.onclick=()=>removeEntry(x.id);td.appendChild(b);tr.appendChild(td);body.appendChild(tr);
+ });
+ const t=totals(rows);$('empty').style.display=rows.length?'none':'block';
+ $('totalSale').textContent=money(t.sale);$('totalExpense').textContent=money(t.expense);
+ $('netTotal').textContent=money(t.sale-t.expense);$('netTotal').className=t.sale-t.expense>=0?'green':'red';
+ $('reportHeading').textContent='Daily Entries — '+d;renderHistory();
+}
+function dateShift(days){const d=new Date();d.setDate(d.getDate()+days);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+$('todayBtn').onclick=()=>{$('recordDate').value=localDate;render()};
+$('yesterdayBtn').onclick=()=>{$('recordDate').value=dateShift(-1);render()};
+$('dayBeforeBtn').onclick=()=>{$('recordDate').value=dateShift(-2);render()};
+$('recordDate').onchange=render;
+$('addSale').onclick=()=>add('sale');$('addExpense').onclick=()=>add('expense');
+function renderHistory(){
+ const el=$('historyList');el.innerHTML='';
+ const dates=Object.keys(records).filter(d=>records[d]&&records[d].length).sort().reverse();
+ if(!dates.length){el.textContent='Abhi tak koi purana record nahi.';return}
+ dates.forEach(d=>{
+  const t=totals(records[d]),b=document.createElement('button');
+  b.textContent=d+' | Sale '+money(t.sale)+' | Expense '+money(t.expense)+' | Bachat '+money(t.sale-t.expense);
+  if(d===$('recordDate').value)b.classList.add('active');
+  b.onclick=()=>{$('recordDate').value=d;render()};el.appendChild(b);
+ });
+}
+function csvCell(v){return '"'+String(v).replaceAll('"','""')+'"'}
+$('exportCsv').onclick=()=>{
+ const d=$('recordDate').value,rows=dayRows(d),t=totals(rows);
+ const lines=[['Date','Type','Details','Amount (Rs.)'],...rows.map(x=>[d,x.type==='sale'?'Sale':'Expense',x.desc,x.amount]),[d,'TOTAL','Total Sale',t.sale],[d,'TOTAL','Total Expenses',t.expense],[d,'TOTAL','Net Amount',t.sale-t.expense]];
+ const blob=new Blob(['\uFEFF'+lines.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Qazi-Daily-Report-'+d+'.csv';a.click();URL.revokeObjectURL(url);
+};
+$('downloadImage').onclick=()=>{
+ const d=$('recordDate').value,rows=dayRows(d),t=totals(rows);
+ const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+ const width=1000,rowH=54,top=245,height=top+Math.max(rows.length,1)*rowH+180;
+ canvas.width=width;canvas.height=height;
+ ctx.fillStyle='#f4f7f8';ctx.fillRect(0,0,width,height);
+ ctx.fillStyle='#10243a';ctx.fillRect(0,0,width,170);
+ ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 34px Arial';ctx.fillText('Qazi Documentation and Digital Service',width/2,70);
+ ctx.fillStyle='#e5d7ad';ctx.font='24px Arial';ctx.fillText('Daily Sale & Expenses Report',width/2,115);
+ ctx.fillStyle='#182532';ctx.font='bold 23px Arial';ctx.fillText('Date: '+d,width/2,215);
+ let y=top;ctx.textAlign='left';ctx.font='bold 21px Arial';ctx.fillStyle='#52616b';
+ ctx.fillText('TYPE',55,y);ctx.fillText('DETAILS',250,y);ctx.fillText('AMOUNT',790,y);y+=20;
+ rows.forEach(x=>{
+  y+=rowH;ctx.strokeStyle='#d9e0e4';ctx.beginPath();ctx.moveTo(45,y);ctx.lineTo(955,y);ctx.stroke();
+  ctx.font='20px Arial';ctx.fillStyle=x.type==='sale'?'#13845b':'#c64b4b';ctx.fillText(x.type==='sale'?'Sale':'Expense',55,y-17);
+  ctx.fillStyle='#182532';ctx.fillText(x.desc.slice(0,38),250,y-17);ctx.textAlign='right';ctx.fillText(money(x.amount),945,y-17);ctx.textAlign='left';
+ });
+ y+=75;ctx.fillStyle='#13845b';ctx.font='bold 23px Arial';ctx.fillText('Total Sale: '+money(t.sale),55,y);
+ y+=42;ctx.fillStyle='#c64b4b';ctx.fillText('Total Expenses: '+money(t.expense),55,y);
+ y+=48;ctx.fillStyle='#10243a';ctx.font='bold 27px Arial';ctx.fillText('Net Amount / Bachat: '+money(t.sale-t.expense),55,y);
+ const a=document.createElement('a');a.download='Qazi-Daily-Report-'+d+'.png';a.href=canvas.toDataURL('image/png');a.click();
+};
+$('printReport').onclick=()=>window.print();
+render();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body></html>
